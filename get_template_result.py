@@ -4,8 +4,8 @@ from datetime import date, timedelta
 from decimal import Decimal
 from time import strftime
 
-from back.data.get_name import get_stock_active_name_list, get_stock_name_list_of_set100
-from back.data.get_ohlcv import get_chunk_data_by_name_and_date
+from get_name import get_stock_active_name_list, get_stock_name_list_of_set100
+from read_data import get_chunk_data_by_name_and_date
 
 
 def calculate_profit(data):
@@ -32,12 +32,13 @@ def get_stock_name_of_growth_more_than_percent_with_period(growth: Decimal, peri
     dictionary['stock_name'] = []
     dictionary['growth'] = []
     for s in stock_names:
-        # stock_data = get_chunk_data_by_name_and_date(s, yesterday.strftime("%m/%d/%Y"), periods)[1]
-        stock_data = get_chunk_data_by_name_and_date(s, '12/16/2016', periods)[1]
+        stock_data = get_chunk_data_by_name_and_date(s, 'day', yesterday.strftime("%m/%d/%Y"), periods)[1]
+        # stock_data = get_chunk_data_by_name_and_date(s, '12/16/2016', periods)[1]
         try:
             cp = calculate_profit(stock_data)
         except TypeError:
-            print("can't calculate for'" + s)
+            pass
+            # print("can't calculate for'" + s)
         if cp > growth:
             dictionary['stock_name'] = s
             dictionary['growth'] = cp

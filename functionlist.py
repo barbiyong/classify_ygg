@@ -1,75 +1,61 @@
-
-import stockdata
+import math
 import talib
-import numpy
+import numpy as np
+from decimal import Decimal
 
 
-def getMACDCrossupZeroIndex(stockData):
-    macd = talib.MACDFIX(stockData['close'])
-    macdIndex = []
-    flag = 0
-    for i, item in enumerate(macd[0]):
-        if (item != 'nan'):
-            if (item < 0):
-                flag = 1
-            elif (item > 0 and flag == 1):
-                macdIndex.append(i)
-                flag = 0
-    return (macdIndex);
+def to_decimal_or_none(value):
+    return value if not math.isnan(value) else None
 
 
-def getRSI14Value(stockData, point):
-    CONSTANT_LAST_ELEMENT = -1
-    rsi = talib.RSI(stockData['close'][:point], timeperiod=14)
+def get_ema(closes, period: int):
+    closes = np.array(list(closes), dtype=float)
+    ema = talib.EMA(closes, timeperiod=period)
+    ema = to_decimal_or_none(ema[-1])
+    return ema
 
-    return (rsi[CONSTANT_LAST_ELEMENT]);
+def get_rsi_14(closes):
+    closes = np.array(list(closes), dtype=float)
+    rsi = talib.RSI(closes, timeperiod=14)
+    rsi = to_decimal_or_none(rsi[-1])
+
+    return rsi
 
 
-def getRSI7Value(stockData, point):
-    CONSTANT_LAST_ELEMENT = -1
-    rsi = talib.RSI(stockData['close'][:point], timeperiod=7)
+def get_rsi_7(closes):
+    closes = np.array(list(closes), dtype=float)
+    rsi = talib.RSI(closes, timeperiod=7)
+    rsi = to_decimal_or_none(rsi[-1])
 
-    return (rsi[CONSTANT_LAST_ELEMENT]);
+    return rsi
 
 
-def SMAVValue(stockData, point, timeRange):
+def macd_vs_signal(closes):
+    closes = np.array(list(closes), dtype=float)
+    macd = talib.MACDFIX(closes)
+    if macd[0][-1] > macd[1][-1]:
+        ret_val = int(1)
+    else:
+        ret_val = int(0)
+
+    return ret_val
+
+
+def smav(stockData, point, timeRange):
     CONSTANT_LAST_ELEMENT = -1
     floatData = [float(x) for x in stockData['volume']]
-    real = numpy.array(floatData[:point])
+    real = np.array(floatData[:point])
     smav = talib.SMA(real, timeperiod=timeRange)
 
     return (smav[CONSTANT_LAST_ELEMENT]);
 
 
-def EMAValue(stockData, point, timeRange):
+def ema(stockData, point, timeRange):
     CONSTANT_LAST_ELEMENT = -1
     ema = talib.EMA(stockData['close'][:point], timeperiod=timeRange)
 
     return (ema[CONSTANT_LAST_ELEMENT]);
 
-
-def macdVSSignalValue(stockData, point):
-    CONSTANT_LAST_ELEMENT = -1
-    macd = talib.MACDFIX(stockData['close'][:point])
-    returnValue = abs(macd[0][CONSTANT_LAST_ELEMENT] / macd[1][CONSTANT_LAST_ELEMENT])
-
-    return (returnValue);
-
-
-def macdMainValue(stockData, point):
-    CONSTANT_LAST_ELEMENT = -1
-    macd = talib.MACDFIX(stockData['close'][:point])
-    returnValue = macd[0][CONSTANT_LAST_ELEMENT]
-
-    return (returnValue);
-
-
-def macdSignalValue(stockData, point):
-    CONSTANT_LAST_ELEMENT = -1
-    macd = talib.MACDFIX(stockData['close'][:point])
-    returnValue = macd[1][CONSTANT_LAST_ELEMENT]
-
-    return (returnValue);
 
 
 def compare2Value(firstValue, secondValue):
@@ -178,7 +164,7 @@ def macd_hist(stockData, point):
 
 # MFI - Money Flow Index
 def mfi(stockData, point, period):
-    volume = numpy.array(stockData['volume'][:point], dtype='d')
+    volume = np.array(stockData['volume'][:point], dtype='d')
     return talib.MFI(stockData['high'][:point], stockData['low'][:point], stockData['close'][:point], volume,
                      timeperiod=period)[-1]
 
@@ -296,20 +282,20 @@ def williams(stockData, point):
 
 # AD - Chaikin A/D Line
 def ad_chaikin(stockData, point):
-    volume = numpy.array(stockData['volume'][:point], dtype='d')
+    volume = np.array(stockData['volume'][:point], dtype='d')
     return talib.AD(stockData['high'][:point], stockData['low'][:point], stockData['close'][:point], volume)[-1]
 
 
 # ADOSC - Chaikin A/D Oscillator
 def adosc_chaikin(stockData, point):
-    volume = numpy.array(stockData['volume'][:point], dtype='d')
+    volume = np.array(stockData['volume'][:point], dtype='d')
     return talib.ADOSC(stockData['high'][:point], stockData['low'][:point], stockData['close'][:point], volume,
                        fastperiod=3, slowperiod=10)[-1]
 
 
 # OBV - On Balance Volume
 def obv(stockData, point):
-    volume = numpy.array(stockData['volume'][:point], dtype='d')
+    volume = np.array(stockData['volume'][:point], dtype='d')
     return talib.OBV(stockData['close'][:point], volume)[-1]
 
 
